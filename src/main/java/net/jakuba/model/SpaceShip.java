@@ -5,11 +5,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
-public class SpaceShip extends com.badlogic.gdx.math.Circle {
+public class SpaceShip {
     private Texture texture = new Texture("spaceship.png");
-    private Fixture fixture;
+    public Fixture fixture;
 
-    public static final int SHIP_SIZE = 64;
+//    public static final float SCALE_FACTOR = 1;
+    public static final float SHIP_SIZE = 5;
 
     public void applyForce(float x, float y) {
         applyForce(new Vector2(x, y));
@@ -18,7 +19,19 @@ public class SpaceShip extends com.badlogic.gdx.math.Circle {
     public void applyForce(Vector2 direction) {
         final Body body = fixture.getBody();
 //        body.applyLinearImpulse(direction, body.getPosition(), true);
-        body.applyForceToCenter(direction, true);
+        Vector2 current = body.getLinearVelocity();
+
+        float thrusterForce = 3;
+        Vector2 newForce = current.add(direction.scl(thrusterForce));
+
+        float maxSpeed = 50;
+
+        if (newForce.len() > maxSpeed) {
+            newForce.setLength(maxSpeed);
+        }
+
+        body.setLinearVelocity(newForce);
+//        body.applyForceToCenter(newForce, true);
     }
 
     public static SpaceShip createIn(World world, float x, float y) {
@@ -47,14 +60,35 @@ public class SpaceShip extends com.badlogic.gdx.math.Circle {
         BodyDef body = new BodyDef();
         body.type = BodyDef.BodyType.DynamicBody;
         body.position.set(x, y);
+        body.linearDamping = 0;
 
         return body;
     }
 
     public void draw(SpriteBatch batch) {
-        final Vector2 position = fixture.getBody().getPosition();
+        Vector2 position = fixture.getBody().getPosition();
 
-        final int radius = SHIP_SIZE / 2;
-        batch.draw(texture, position.x - radius, position.y - radius, SHIP_SIZE, SHIP_SIZE);
+        float radius = SHIP_SIZE / 2;
+        float x = (position.x - radius);
+        float y = (position.y - radius);
+        float real_size = SHIP_SIZE;
+
+//        System.out.printf("%f %f %f %f\n", radius, x, y, real_size);
+//        batch.draw(texture, x, y, real_size, real_size);
+    }
+
+    private Body body() { return fixture.getBody(); }
+
+    public void stop() {
+        body().setLinearVelocity(0, 0);
+        body().setAngularVelocity(0);
+    }
+
+    public Vector2 getPosition() {
+        return body().getPosition();
+    }
+
+    public void rotate(Vector2 direction) {
+        body().setTransform(body().getPosition(), direction.angleRad());
     }
 }
