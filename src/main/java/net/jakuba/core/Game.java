@@ -3,7 +3,6 @@ package net.jakuba.core;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -26,7 +25,7 @@ public class Game extends ApplicationAdapter {
     public static final int WINDOW_HEIGHT = 900;
     private SpriteBatch batch;
     private World world;
-    private Box2DDebugRenderer boxRenderer;
+    private Box2DDebugRenderer box2dRenderer;
     private OrthographicCamera camera;
     private SpaceShip ship;
     private List<Asteroid> asteroids;
@@ -43,9 +42,10 @@ public class Game extends ApplicationAdapter {
 
         ship = SpaceShip.createIn(world, 5, 5);
 
-        boxRenderer = new Box2DDebugRenderer();
+        box2dRenderer = new Box2DDebugRenderer();
+
         camera = new OrthographicCamera(WINDOW_WIDTH, WINDOW_HEIGHT);
-        camera.zoom = 0.15f;
+        camera.zoom = 0.10f;
         camera.update();
 
         asteroids = new ArrayList<>();
@@ -67,7 +67,10 @@ public class Game extends ApplicationAdapter {
 
         Vector2 direction = null;
 
-//        System.out.println(Gdx.graphics.getDeltaTime());
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q) || Gdx.input.isTouched()) {
+            ship.shoot();
+            ship.mouseMoved(camera, Gdx.input.getX(), WINDOW_HEIGHT - Gdx.input.getY());
+        }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             direction = new Vector2(-1, 0);
             ship.applyForce(direction);
@@ -101,9 +104,6 @@ public class Game extends ApplicationAdapter {
             asteroids.add(asteroid);
         }
 
-        if (direction != null) {
-            // TODO - camera handling
-        }
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
@@ -132,7 +132,7 @@ public class Game extends ApplicationAdapter {
 
         hudBatch.end();
 
-        boxRenderer.render(world, camera.combined);
+        box2dRenderer.render(world, camera.combined);
     }
 
     @Override
